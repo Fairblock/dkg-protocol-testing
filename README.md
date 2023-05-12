@@ -1,4 +1,5 @@
 [All instrcutions and hardcoded values are just for testing purposes and will be replaced with proper formatting.]
+
 To execute the DKG, four repositories are needed and they all need to be located in the same directory. Also please change the repository names according to the below list: 
 - DKGChain -> dkg
 - DKGCore -> axelar-core
