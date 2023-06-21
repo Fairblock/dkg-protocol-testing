@@ -1,31 +1,34 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"io"
-	"math/rand"
+	"io/ioutil"
 	"strconv"
+	"sync"
+
+	"log"
+	"strings"
+
 	"time"
 
-	//	"math/rand"
+	"math/rand"
 	"os"
 	"os/exec"
-	"os/signal"
 
-	// "strconv"
-	// "time"
-
-	//"strings"
-	"syscall"
+	"github.com/FairBlock/vsskyber"
+	bls "github.com/drand/kyber-bls12381"
+	"github.com/joho/godotenv"
 )
-func startChainProgram(id string) {
-	cmd := exec.Command("./bin/dkgd", "tx","dkg","start-keygen",id, "2", "1","[\"cosmos1j58yhcq7atg2re2h6gn6zzgae4s0n979ysxkrz\",\"cosmos1urt3k33qtmnfzumlqvn3d67eulp8ennwvvkd3x\",\"cosmos12hlaf7g85v45433x0d932ctelxvqha6y5nzrsl\",\"cosmos1l2fn2hpdmt2a8sq6697cpm8xha6x8nluanwafx\",\"cosmos1vctx4yuj94k6fk6c7z8tnpeqxhg6h4c9r9hzk2\"]","--from", "alice", "-y")
-	
+
+func startChainProgram(id string, threshold string, addressList string, path string) {
+	cmd := exec.Command(path, "tx", "dkg", "start-keygen", id, threshold, "1", addressList, "--from", "alice", "-y")
+
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Dir = "/home/setareh/go"
+
 	err := cmd.Start()
-	
+
 	if err != nil {
 		fmt.Printf("Failed to start Go program : %s\n", err)
 	} else {
@@ -33,62 +36,82 @@ func startChainProgram(id string) {
 	}
 }
 
-func startGoProgram(path string,addr string, key string, port string) {
-	cmd := exec.Command("go","run",path, "vald-start", "--validator-addr", addr, "--validator-key", key, "--tofnd-port",port)
+func startGoProgram(path string, addr string, key string, port string) {
+	cmd := exec.Command("go", "run", "./cmd/dkgd/main.go", "vald-start", "--validator-addr", addr, "--validator-key", key, "--tofnd-port", port)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Dir = "/home/setareh/job/ibe libs/axelar-core-5aaeee9ca66a9d8cdd11897eb25ad99580ad948b"
+	cmd.Dir = path
 	err := cmd.Start()
-	
+
 	if err != nil {
 		fmt.Printf("Failed to start Go program %s: %s\n", path, err)
 	} else {
 		fmt.Printf("Started Go program: %s\n", path)
 	}
-}
-
-func startRustProgram(path string) {
-
-	cmd1 := exec.Command("echo", "3802380")
-	cmd2 := exec.Command("./tofnd/target/release/tofnd")
-	cmd1.Dir = "/home/setareh/job/ibe libs"
-	cmd2.Dir = "/home/setareh/job/ibe libs"
-	// Create a pipe to connect the output of cmd1 to the input of cmd2
-	pipeReader, pipeWriter := io.Pipe()
-	defer pipeReader.Close()
-	defer pipeWriter.Close()
-
-	// Set the pipeWriter as the output for cmd1 and pipeReader as the input for cmd2
-	cmd1.Stdout = pipeWriter
-	cmd2.Stdin = pipeReader
-	cmd2.Stdout = os.Stdout
-	cmd2.Stderr = os.Stderr
-	// Start the commands
-	if err := cmd1.Start(); err != nil {
-		fmt.Printf("Failed to start command 1: %s\n", err)
-		os.Exit(1)
+	err = cmd.Wait()
+	if err != nil {
+		exitErr, ok := err.(*exec.ExitError)
+		if ok && exitErr.ExitCode() != 0 {
+			fmt.Println("Command exited with non-zero status code:", exitErr.ExitCode())
+		} else {
+			log.Fatal("Command execution error:", err)
+		}
+	} else {
+		fmt.Println("Command executed successfully")
 	}
-	if err := cmd2.Start(); err != nil {
-		fmt.Printf("Failed to start command 2: %s\n", err)
-		os.Exit(1)
-	}
-	//cmd := exec.Command("echo" ,"3802380", "|", "")
-
-
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-	// Start the Rust program
-	//startRustProgram("../tofnd/target/release/tofnd")
+	// Access the environment variables
+	addressesString := os.Getenv("ADDRESSES")
+	addresses := strings.Split(addressesString, ",")
+	keysString := os.Getenv("KEYS")
+	keys := strings.Split(keysString, ",")
+	portsString := os.Getenv("PORTS")
+	ports := strings.Split(portsString, ",")
+	shareTestIds := os.Getenv("shareTestIds")
 
-	// Start the Go programs 
-	startGoProgram("./cmd/dkgd/main.go","cosmos1j58yhcq7atg2re2h6gn6zzgae4s0n979ysxkrz","7bd3c732dfdcf95f8b7308c28eee76a707b655ac89d20caac768867d9764d01a","50059")
-	startGoProgram("./cmd/dkgd/main.go", "cosmos1urt3k33qtmnfzumlqvn3d67eulp8ennwvvkd3x", "14d1fffcfaf76b35dfb4fdd1ceb70b75792c276b393b03d366df9c7bd35f4d42","50059")
-	startGoProgram("./cmd/dkgd/main.go", "cosmos12hlaf7g85v45433x0d932ctelxvqha6y5nzrsl", "0383dca70f603821066bcd418cfda073cf1dab5a9ccdc8eda4d093d010fbf4da","50059")
-	startGoProgram("./cmd/dkgd/main.go", "cosmos1l2fn2hpdmt2a8sq6697cpm8xha6x8nluanwafx", "6db99bd62f9f47b68668c75e9a404605758a799fb4dceb0c0290aa6afbb3402a","50059")
-	startGoProgram("./cmd/dkgd/main.go", "cosmos1vctx4yuj94k6fk6c7z8tnpeqxhg6h4c9r9hzk2", "5dc708810b9c285e8a0fd4fafa1e591166ba00793d42c42d7fc5fbdbead9cc91","50059")
+	thresholdString := os.Getenv("THRESHOLD")
+	path := os.Getenv("PathTodkgd")
+	corePath := os.Getenv("PathToCore")
+	if len(addresses) != len(keys) {
+		log.Fatal("Mismatch in number of keys and addresses!")
+	}
+	if len(addresses) != len(ports) {
+		log.Fatal("Mismatch in number of ports and addresses!")
+	}
 
+	numCalls := len(keys)
+
+	// Create a WaitGroup to wait for goroutines to finish
+	var wg sync.WaitGroup
+
+	// Increment the WaitGroup counter for each goroutine
+	wg.Add(numCalls)
+
+	for i := 0; i < numCalls; i++ {
+
+		go func(id int) {
+			// Decrement the WaitGroup counter when the goroutine finishes
+			defer wg.Done()
+
+			// Call the function
+			startGoProgram(corePath, addresses[id], keys[id], ports[id])
+		}(i)
+	}
+
+	jsonBytes, err := json.Marshal(addresses)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	jsonAddressString := string(jsonBytes)
 	//~/go/bin/dkgd tx dkg start-keygen 104 1 1 '["cosmos1uvvze65ey932l5l32kfgzlnut8e5f4zp2w26dk","cosmos136wuzlrrceanv5jn0p25um3d426wrc47epsxaj"]' --from alice
 	time.Sleep(5 * time.Second)
 	rand.Seed(time.Now().UnixNano())
@@ -96,11 +119,71 @@ func main() {
 	// Generate a random integer between 0 and 100
 	randomNumber := rand.Intn(300)
 
-	startChainProgram(strconv.Itoa(randomNumber))
+	startChainProgram(strconv.Itoa(randomNumber), thresholdString, jsonAddressString, path)
+	wg.Wait()
 	// Keep the programs running until interrupted
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
-	<-signalChan
+	for i := 0; i < len(addresses); i++ {
+		copys := corePath + "/share-" + strconv.Itoa(i) + ".txt"
+		copyp := corePath + "/pk-" + strconv.Itoa(i) + ".txt"
+		//fmt.Println(copy)
+		cmd := exec.Command("cp", copys, "./")
+		err := cmd.Run()
 
-	fmt.Println("Stopping the programs...")
+		if err != nil {
+			fmt.Printf("Failed to start Go program: %s\n", err)
+		}
+		cmd = exec.Command("cp", copyp, "./")
+		err = cmd.Run()
+
+		if err != nil {
+			fmt.Printf("Failed to start Go program: %s\n", err)
+		}
+	}
+	verify_shares([]string{thresholdString, shareTestIds})
+
+}
+
+func verify_shares(args []string) {
+	threshold, _ := strconv.ParseUint(args[0], 10, 32)
+	chosen := strings.Split(args[1], ",")
+
+	var shareThreshold []vsskyber.Share
+
+	if len(chosen) < int(threshold) {
+		fmt.Println("Number of shares less than threshold.")
+		os.Exit(-1)
+	}
+	for i := 0; i < int(threshold); i++ {
+
+		s, err := ioutil.ReadFile("share-" + string(chosen[i]) + ".txt")
+		if err != nil {
+			fmt.Printf("Failed to read file: %s\n", err)
+			return
+		}
+		index, _ := strconv.ParseUint(chosen[i], 10, 32)
+
+		share := vsskyber.Share{Index: bls.NewKyberScalar().SetInt64(int64(index + 1)), Value: bls.NewKyberScalar().SetBytes(s)}
+		shareThreshold = append(shareThreshold, share)
+	}
+
+	recMasterSecretKey, err := vsskyber.RegenerateSecret(uint32(threshold), shareThreshold)
+
+	s := bls.NewBLS12381Suite()
+	pkRec := s.G1().Point()
+	pkRec.Mul(recMasterSecretKey, s.G1().Point().Base())
+
+	pkb, err := ioutil.ReadFile("pk-0.txt")
+	if err != nil {
+		fmt.Printf("Failed to read file: %s\n", err)
+		return
+	}
+	pk := s.G1().Point()
+	pk.UnmarshalBinary(pkb)
+
+	if pk.Equal(pkRec) {
+		fmt.Println("The MSK and reconstructed MSK are equal")
+	} else {
+		fmt.Println("wrong shares or pk", pk, pkRec, recMasterSecretKey)
+		return
+	}
 }
