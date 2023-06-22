@@ -1,17 +1,17 @@
 # DKG 
 The following four repositories provide the complete DKG protocol and its chain:
-- DKGChain 
-- DKGCore 
-- dkg-protocol 
+- dkg-chain 
+- dkg-core 
+- tofn 
 - tofnd 
 ## Setup 
 To run the protocol, the chain and the tofnd instance need to be up and arunning. Each validator runs their own local version of the tofnd. 
-To test the DKG, four repositories are needed and they all need to be located in the same directory and dkg-protocol should be placed inside the tofnd directory. (rename the dkg-protocol folder to tofn)
+To test the DKG, four repositories are needed and they all need to be located in the same directory and tofn should be placed inside the tofnd directory. 
 
 ## Usage
 First, the chain needs to be started. To start the chain, follow the below commands:
 ```sh
-cd dkg
+cd dkg-chain
 ignite chain serve
 ```
 Next, the tofnd server should be started. The protocol can be tested either by running a single server for all validators or by simulating the actual case where each validator runs their own local version of the tofnd server using docker. 
