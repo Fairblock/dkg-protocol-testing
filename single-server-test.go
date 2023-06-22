@@ -153,7 +153,7 @@ func verify_shares(args []string) {
 		fmt.Println("Number of shares less than threshold.")
 		os.Exit(-1)
 	}
-	for i := 0; i < int(threshold); i++ {
+	for i := 0; i < int(threshold)+1; i++ {
 
 		s, err := ioutil.ReadFile("share-" + string(chosen[i]) + ".txt")
 		if err != nil {
@@ -161,13 +161,15 @@ func verify_shares(args []string) {
 			return
 		}
 		index, _ := strconv.ParseUint(chosen[i], 10, 32)
-
+		fmt.Println(index)
 		share := vsskyber.Share{Index: bls.NewKyberScalar().SetInt64(int64(index + 1)), Value: bls.NewKyberScalar().SetBytes(s)}
 		shareThreshold = append(shareThreshold, share)
 	}
 
-	recMasterSecretKey, err := vsskyber.RegenerateSecret(uint32(threshold), shareThreshold)
-
+	recMasterSecretKey, err := vsskyber.RegenerateSecret(uint32(threshold)+1, shareThreshold)
+	if err != nil{
+		fmt.Println(err)
+	}
 	s := bls.NewBLS12381Suite()
 	pkRec := s.G1().Point()
 	pkRec.Mul(recMasterSecretKey, s.G1().Point().Base())
