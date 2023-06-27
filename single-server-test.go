@@ -113,7 +113,7 @@ func main() {
 
 	jsonAddressString := string(jsonBytes)
 	//~/go/bin/dkgd tx dkg start-keygen 104 1 1 '["cosmos1uvvze65ey932l5l32kfgzlnut8e5f4zp2w26dk","cosmos136wuzlrrceanv5jn0p25um3d426wrc47epsxaj"]' --from alice
-	time.Sleep(5 * time.Second)
+	time.Sleep(15 * time.Second)
 	rand.Seed(time.Now().UnixNano())
 
 	// Generate a random integer between 0 and 100
@@ -161,7 +161,7 @@ func verify_shares(args []string) {
 			return
 		}
 		index, _ := strconv.ParseUint(chosen[i], 10, 32)
-		fmt.Println(index)
+		
 		share := vsskyber.Share{Index: bls.NewKyberScalar().SetInt64(int64(index + 1)), Value: bls.NewKyberScalar().SetBytes(s)}
 		shareThreshold = append(shareThreshold, share)
 	}
