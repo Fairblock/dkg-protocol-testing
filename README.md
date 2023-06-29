@@ -53,8 +53,9 @@ This allows the tofnd to run on ```0.0.0.0:{container-port}``` and be accessible
 Create similar containers for all validators but each with a different port on host for the server.
 The final step is to modify the inputs for the test and run the multiple-server-test.go file:
 ```sh
-go run multiple-server-test.go
+go run single-server-test.go
 ```
+Alternatively, you can just run `multi-server-test.go` and then run `single-server-test.go` instead of setting up the dockers yourself.
 The test file creates the validators, sends out the key-gen start transaction and performs a validation check on the outputs of the protocol.
 ### Malicious Scenarios
 To test the protocol in cases where there are faulty validators, use the ```malicious``` feature when building the tofnd:
