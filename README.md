@@ -16,7 +16,7 @@ ignite chain serve
 ```
 Next, the tofnd server should be started. The protocol can be tested either by running a single server for all validators or by simulating the actual case where each validator runs their own local version of the tofnd server using docker. 
 ### Signle Server Testing
-To test the protocol using a signle server, follow the below commands to start the grpc server:
+To test the protocol on a signle server, follow the below commands to start the grpc server:
 ```sh
 cd tofnd
 cargo build --release
@@ -24,7 +24,10 @@ cd target/release
 ./tofnd
 ```
 The server runs on port 50051 of the localhoast by default. 
-The final step is to modify the inputs for the test and run the single-server-test.go file:
+The final step is to modify the inputs in .env file and run the single-server-test.go file:
+To easily export the addresses for the test, run the ```extract.py``` to extract the addresses, and ```extractkey.py``` to extract the keys.
+The ports where the tofnd used by each validator is running on, and final shares that should be used to verify the correctness of the mpk can also be specified in the .env file.
+After modifying the inputs, run the test using the below command:
 ```sh
 go run single-server-test.go
 ```
@@ -32,30 +35,24 @@ The test file creates the validators, sends out the key-gen start transaction an
 
 ### Separate gRPC Servers Inside Docker Containers
 To simulate the actual case where each validator has their own version of the gRPC, we can set up the docker containers through the following steps:
-First, create an ubuntu container to run the gRPC server inside it. 
 ```sh
-sudo docker pull ubuntu
+Sudo docker build 
 ```
-Next, using the ```docker ps -a``` command, find the name of the docker container and use it to copy the tofnd directory inside the docker by executing the following command:
+Next, create a commit of tofnd for each grpc server required:
 ```sh
-docker cp {path-to}/tofnd {container-name}:/ 
+sudo docker commit tofnd tofnd{i}
 ```
+where `i` is the grpc server number `i`. (This is an example of naming.)
 Then, run the docker container and map the port on which the gRPC server will be running to a port on the host:
 ```sh
-docker run -p {container-port}:{host-port} -td {docker-name} 
+sudo docker run -p {port_num(e.g. 50051)}:{port_num(e.g. 50051)} -i -t tofnd{i} -p {port_num(e.g. 50051)} 
 ```
-Next, run a bash terminal inside the container using ```docker container exec -it {container-name or container-id}  /bin/bash ```. Then proceed to the tofnd repository and install Rust. 
-Follow the instructions to build and run the gRPC server but make sure to include the desired port and the address ```0.0.0.0``` in the command as follows:
-```sh
-./tofnd -p {container-port} -a 0.0.0.0
-```
-This allows the tofnd to run on ```0.0.0.0:{container-port}``` and be accessible from localhost:{host-port} on the host.
+This allows the tofnd to run on ```0.0.0.0:{port_num}``` and be accessible from ```localhost:{port_num}``` on the host.
 Create similar containers for all validators but each with a different port on host for the server.
-The final step is to modify the inputs for the test and run the multiple-server-test.go file:
+The final step is to modify the inputs for the test (specially the ports) and run the single-server-test.go file:
 ```sh
 go run single-server-test.go
 ```
-Alternatively, you can just run `multi-server-test.go` and then run `single-server-test.go` instead of setting up the dockers yourself.
 The test file creates the validators, sends out the key-gen start transaction and performs a validation check on the outputs of the protocol.
 ### Malicious Scenarios
 To test the protocol in cases where there are faulty validators, use the ```malicious``` feature when building the tofnd:
@@ -78,3 +75,4 @@ We have tested the protocol with `5` validators. The number of messages that are
 - Round 1: 5 broadcast messages (n)
 - Round 2: 20 broadcast messages (n * (n-1))
 - Round 3: 0 to 20 broadcast messages (depending on the accusations) (0-n*(n-1))
+
