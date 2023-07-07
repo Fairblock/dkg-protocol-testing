@@ -22,7 +22,7 @@ import (
 )
 
 func startChainProgram(id string, threshold string, addressList string, path string) {
-	cmd := exec.Command(path, "tx", "dkg", "start-keygen", id, threshold, "1", addressList, "--from", "alice", "-y")
+	cmd := exec.Command(path, "tx", "dkg", "start-keygen", id, threshold, "30", addressList, "--from", "alice", "-y")
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -36,8 +36,8 @@ func startChainProgram(id string, threshold string, addressList string, path str
 	}
 }
 
-func startGoProgram(path string, addr string, key string, port string) {
-	cmd := exec.Command("go", "run", "./cmd/dkgd/main.go", "vald-start", "--validator-addr", addr, "--validator-key", key, "--tofnd-port", port)
+func startGoProgram(path string, addr string, key string, port string, capacity string) {
+	cmd := exec.Command("go", "run", "./cmd/dkgd/main.go", "vald-start", "--validator-addr", addr, "--validator-key", key, "--tofnd-port", port, "--channel-capacity", capacity)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Dir = path
@@ -77,6 +77,8 @@ func main() {
 	shareTestIds := os.Getenv("shareTestIds")
 
 	thresholdString := os.Getenv("THRESHOLD")
+	capacity := os.Getenv("ChannelCap")
+
 	path := os.Getenv("PathTodkgd")
 	corePath := os.Getenv("PathToCore")
 	if len(addresses) != len(keys) {
@@ -86,7 +88,7 @@ func main() {
 		log.Fatal("Mismatch in number of ports and addresses!")
 	}
 
-	numCalls := len(keys)
+	numCalls := len(ports)
 
 	// Create a WaitGroup to wait for goroutines to finish
 	var wg sync.WaitGroup
@@ -101,7 +103,7 @@ func main() {
 			defer wg.Done()
 
 			// Call the function
-			startGoProgram(corePath, addresses[id], keys[id], ports[id])
+			startGoProgram(corePath, addresses[id], keys[id], ports[id], capacity)
 		}(i)
 	}
 
@@ -121,7 +123,7 @@ func main() {
 
 	startChainProgram(strconv.Itoa(randomNumber), thresholdString, jsonAddressString, path)
 	wg.Wait()
-	// Keep the programs running until interrupted
+	//Keep the programs running until interrupted
 	for i := 0; i < len(addresses); i++ {
 		copys := corePath + "/share-" + strconv.Itoa(i) + ".txt"
 		copyp := corePath + "/pk-" + strconv.Itoa(i) + ".txt"
