@@ -75,4 +75,8 @@ We have tested the protocol with `5` validators. The number of messages that are
 - Round 1: 5 broadcast messages (n)
 - Round 2: 20 broadcast messages (n * (n-1))
 - Round 3: 0 to 20 broadcast messages (depending on the accusations) (0-n*(n-1))
-
+## Number of validators and the required setup
+- 20 validators - channelCap = 300 , timeout = 20 blocks
+- 30 validators - channelCap = 600 , timeout = 30 blocks
+- 50 validators - channelCap = 2500, timeout = 150 blocks
+- 150 Not working yet
