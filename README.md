@@ -79,4 +79,39 @@ We have tested the protocol with `5` validators. The number of messages that are
 - 20 validators - channelCap = 300 , timeout = 20 blocks
 - 30 validators - channelCap = 600 , timeout = 30 blocks
 - 50 validators - channelCap = 2500, timeout = 150 blocks
-- 150 Not working yet
+- 180 validators - channelCap = 33000, timeout = 650 blocks
+
+## Overview of the implementation
+
+The dkg implementation is divided into 4 separate projects. Below, we briefly provide a high level description of each part. 
+
+### dkg-chain
+The chain side serves as a conduit for broadcasting messages among validators. There are four distinct types of messages. The "start-keygen" message initiates the Distributed Key Generation (DKG) process and includes essential data such as a list of public keys (pks) of the validators participating in the DKG, the round timeout, the session ID, and the threshold value.
+
+Messages within the first two rounds are designated as "refundable messages." During the processing of these messages, an event is emitted, allowing validators to retrieve them. Additionally, these messages are assigned an index during processing. This index serves a critical function; if a validator misses a message, the index enables them to query and retrieve that specific missed message at a later time. A comprehensive list of public keys (pks) is maintained, which will subsequently be utilized in the computation of the Master Public Key (MPK).
+
+The third category of messages is termed a "dispute message." These messages are dispatched solely when a validator intends to allege that another validator is malicious. The validation of the dispute message occurs on the chain. Following the validation process, either the accuser or the accused is declared as faulty through an emitted event. Additionally, a record of all faulty validators is preserved on the chain side. This information is later employed in the calculation of the MPK.
+
+The final message is called keygen-result which is being sent at the end of the protocol and includes the commitments for the pk of each validator. The commitment are later used for the ibe encryption.
+
+### tofn
+This section is implemented using the Rust programming language and encompasses the primary components of the Distributed Key Generation (DKG) protocol. The implementation is structured into four distinct rounds:
+
+1. **First Round**: A unique set of keys is generated for each validator, and the corresponding public keys (pks) are broadcasted.
+2. **Second Round**: Each validator computes shares for the others and encrypts them using the respective validator's public keys.
+3. **Third Round**: Every validator decrypts and verifies the shares they have received. If an incorrect share is identified, a dispute message is created.
+4. **Fourth Round**: The final shares are calculated, taking into consideration the faulty validators identified in the previous round.
+
+This structure ensures a methodical and secure progression through the key generation process.
+
+[write the decision for sending the proof (c) ]
+
+### tofnd
+This component acts as a wrapper around the tofn implementation, facilitating communication between the Go side and the Rust side. Its primary role is to manage the continuous stream of messages to and from the dkg-core.
+
+### dkg-core
+Serving as the validator code, this section establishes connections to both the chain and the dkg protocol side (tofnd) and mediates the message transfers between them. Several design choices have been made to handle the significant volume of messages, especially when around 200 validators are participating in the DKG, and to ensure synchrony. 
+
+- **Round-Based Messaging**: Messages for each round are only transmitted on-chain during the designated time window for that round, and the corresponding events are read from the chain within the same timeframe. If any messages are missing for a specific round, they will be queried and retrieved from the chain at the beginning of the subsequent round.
+- **Batched Transactions**: Messages are sent on-chain in batches, meaning that each transaction dispatched on-chain encompasses a batch of messages.
+- **Controlled Delay**: Transactions are sent with a specific delay based on the index of the validator. This strategy ensures that not all messages reach the mempool simultaneously, thereby preventing potential flooding that could lead to missed messages.
