@@ -115,3 +115,15 @@ Serving as the validator code, this section establishes connections to both the 
 - **Round-Based Messaging**: Messages for each round are only transmitted on-chain during the designated time window for that round, and the corresponding events are read from the chain within the same timeframe. If any messages are missing for a specific round, they will be queried and retrieved from the chain at the beginning of the subsequent round.
 - **Batched Transactions**: Messages are sent on-chain in batches, meaning that each transaction dispatched on-chain encompasses a batch of messages.
 - **Controlled Delay**: Transactions are sent with a specific delay based on the index of the validator. This strategy ensures that not all messages reach the mempool simultaneously, thereby preventing potential flooding that could lead to missed messages.
+
+## Runtime Measurements
+The following section delineates the runtime associated with the worst-case scenario, taking into consideration the varying quantities of participating validators.
+
+| Num of Validators | Num of Malicious Validators | Runtime    |
+|-------------------|-----------------------------|------------|
+| 10                | 5                           |   4 minutes       |
+| 50                | 25                          |   11 minutes      |
+| 90                | 45                          |   16 minutes      |
+| 140               | 70                          |   0.5 hour    |
+| 180               | 90                          |   1 hour      |
+
