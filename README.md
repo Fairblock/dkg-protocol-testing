@@ -54,6 +54,34 @@ The final step is to modify the inputs for the test (specially the ports) and ru
 go run single-server-test.go
 ```
 The test file creates the validators, sends out the key-gen start transaction and performs a validation check on the outputs of the protocol.
+### Multiple Servers Testing
+In order to run the tests using multiple servers, first we need to setup the chain and run a validator node on each server. Below are the instructions to achieve this:
+#### Machine 1:
+1. Initialize the chain: `./dkgd init --chain-id <chain_id>`
+2. Add new keys with the `keys add` command.
+3. Add genesis balance with the `add-genesis-account` command.
+4. Run the `gentx` command.
+
+#### Machine 2:
+1. Initialize the chain (the chain ID should be the same in both systems):: `./dkgd init --chain-id <chain_id>`
+2. Add new keys with the `keys add` command.
+3. Add genesis balance with the `add-genesis-account` command.
+4. Run the `gentx` command.
+
+#### Machine 1:
+1. Copy the `gentx-xxxxxxx*.json` file from machine 2 to the `~/.dkg/confog/gentx` directory. So, the `~/.dkg/confog/gentx` directory in machine 1 should have TWO gentx files; 1 from the original gentx and another from machine 2.
+2. Run the same `add-genesis-account` you ran on machine 2. In the command, replace the `key_name` with the `account_address` of the key from machine 2.
+3. Run the `collect-gentxs` command.
+
+#### Machine 2:
+1. Copy the genesis file from machine 1 and replace the genesis file in machine 2.
+2. Add the peer info of machine 1 in the `config.toml` file of machine 2.
+
+#### Both Machines:
+- Make sure the 26657 port is accessible. Search for 26657 in the `config.toml` file. If the IP is `127.0.0.1`, change it to `0.0.0.0`.
+- Start both the nodes.
+If there are more than 2 servers, the same approach can be used to setup the chain and validators.
+Next, we can use the previous instructions to run serveral validators on each server for the dkg. Each server will also have their own `tofnd` instance.
 ### Malicious Scenarios
 To test the protocol in cases where there are faulty validators, use the ```malicious``` feature when building the tofnd:
 ```sh
