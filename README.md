@@ -94,9 +94,9 @@ There are several test cases including:
 In both cases the faulty validator should be excluded from the protocol and the final shares and public key will be created excluding them.
  An example of how to run a malicious case:
 ```sh
-./tofnd malicious R2BadShare 1
+./tofnd malicious R2BadShare 1 2
 ```
-In this example, anyone running this server will send wrong shares to validator 1.
+In this example, validator 2 running this server will send wrong shares to validator 1.
 Other possible options for malicious behaviour are: `R2BadEncryption` and `R3FalseAccusation`
 ## Benchmarking
 We have tested the protocol with `5` validators. The number of messages that are being broadcasted in each round are (n is the general number of validators):
