@@ -94,9 +94,9 @@ There are several test cases including:
 In both cases the faulty validator should be excluded from the protocol and the final shares and public key will be created excluding them.
  An example of how to run a malicious case:
 ```sh
-./tofnd malicious R2BadShare 1 2
+./tofnd malicious R2BadShare 1
 ```
-In this example, validator 2 running this server will send wrong shares to validator 1.
+In this example, anyone running this server will send wrong shares to validator 1.
 Other possible options for malicious behaviour are: `R2BadEncryption` and `R3FalseAccusation`
 ## Benchmarking
 We have tested the protocol with `5` validators. The number of messages that are being broadcasted in each round are (n is the general number of validators):
@@ -132,7 +132,11 @@ This section is implemented using the Rust programming language and encompasses 
 
 This structure ensures a methodical and secure progression through the key generation process.
 
-[write the decision for sending the proof (c) ]
+#### Implementation Specific Decisions
+
+Our implementation of the Distributed Key Generation (DKG) protocol is rooted in the methodologies presented in the EthDKG paper. Central to this is the utilization of Zero-Knowledge Proofs (ZKProofs) that the paper introduces for handling anomalous situations, particularly when a validator receives a faulty share and wishes to file a complaint. The proof mechanism is designed to harness a hash function that operates over multiple parameters, such as public keys and the mutual key shared between validators. This allows a validator to convincingly demonstrate their knowledge of their secret key, a vital requirement when alleging the receipt of an erroneous share.
+
+While the original protocol is robust, we've made some modifications to better align it with our technological stack. Specifically, we've adapted the hashing mechanism to suit our use of the bls12-381 elliptic curve. In our implementation, the output of the hash function is converted to a Scalar at a certain point in the algorithm. Therefore, we use the `hash-value mod Modulus` instead of the actual hash value. Importantly, these alterations do not compromise the security integrity of the overall system.
 
 ### tofnd
 This component acts as a wrapper around the tofn implementation, facilitating communication between the Go side and the Rust side. Its primary role is to manage the continuous stream of messages to and from the dkg-core.
