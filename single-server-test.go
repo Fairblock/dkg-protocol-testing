@@ -22,7 +22,7 @@ import (
 )
 
 func startChainProgram(id string, threshold string, addressList string, path string) {
-	cmd := exec.Command(path, "tx", "dkg", "start-keygen", id, threshold, "30", addressList, "--from", "alice", "-y")
+	cmd := exec.Command(path, "tx", "dkg", "start-keygen", id, threshold, "13", addressList, "--from", "v1-key", "--keyring-backend", "test", "-y")
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -75,17 +75,17 @@ func main() {
 	portsString := os.Getenv("PORTS")
 	ports := strings.Split(portsString, ",")
 	shareTestIds := os.Getenv("shareTestIds")
-
+	_=shareTestIds
 	thresholdString := os.Getenv("THRESHOLD")
 	capacity := os.Getenv("ChannelCap")
 
 	path := os.Getenv("PathTodkgd")
 	corePath := os.Getenv("PathToCore")
-	if len(addresses) != len(keys) {
-		log.Fatal("Mismatch in number of keys and addresses!")
-	}
-	if len(addresses) != len(ports) {
-		log.Fatal("Mismatch in number of ports and addresses!")
+	// if len(addresses) != len(keys) {
+	// 	log.Fatal("Mismatch in number of keys and addresses!", len(addresses), len(keys))
+	// }
+	if len(keys) != len(ports) {
+		log.Fatal("Mismatch in number of ports and keys!", len(ports), len(keys))
 	}
 
 	numCalls := len(ports)
@@ -115,7 +115,7 @@ func main() {
 
 	jsonAddressString := string(jsonBytes)
 	//~/go/bin/dkgd tx dkg start-keygen 104 1 1 '["cosmos1uvvze65ey932l5l32kfgzlnut8e5f4zp2w26dk","cosmos136wuzlrrceanv5jn0p25um3d426wrc47epsxaj"]' --from alice
-	time.Sleep(15 * time.Second)
+	time.Sleep(90 * time.Second)
 	rand.Seed(time.Now().UnixNano())
 
 	// Generate a random integer between 0 and 100
