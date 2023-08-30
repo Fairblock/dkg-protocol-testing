@@ -111,6 +111,7 @@ Once your validator node is up and running, start your own `tofnd` server locall
 
 ### 3. Initialize DKG Process
 - Utilize the `single-server-testing.go` file to begin listening on the DKG chain for the `keygen-start` transaction and continue the protocol through running the `dkg-core`.
+    - Make sure to comment the part where the keygen-start messafge is being sent in the `single-server-testing.go` and the part the final shares are verfied, since these parts are only for testing purpose.
 
 ### 4. Retrieve Final Share and MPK
 - Upon successful completion, the DKG share will be saved in a file named `share-{id}.txt`.
