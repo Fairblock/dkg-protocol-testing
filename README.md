@@ -26,7 +26,7 @@ cd target/release
 The server runs on port 50051 of the localhoast by default. 
 The final step is to modify the inputs in .env file and run the single-server-test.go file:
 To easily export the addresses for the test, run the ```extract.py``` to extract the addresses, and ```extractkey.py``` to extract the keys.
-The ports where the tofnd used by each validator is running on, and final shares that should be used to verify the correctness of the mpk can also be specified in the .env file.
+The ports where the tofnd used by each validator is running on, and final shares that should be used to verify the correctness of the mpk can also be specified in the .env file. For the testing, you also need to specify the timeout for the rounds and the manager key name (who will send the start-keygen tx) in the `.env` file.
 After modifying the inputs, run the test using the below command:
 ```sh
 go run single-server-test.go

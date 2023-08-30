@@ -21,8 +21,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func startChainProgram(id string, threshold string, addressList string, path string) {
-	cmd := exec.Command(path, "tx", "dkg", "start-keygen", id, threshold, "150", addressList, "--from", "v1-key", "--keyring-backend", "test", "-y")
+func startChainProgram(id string, threshold string, addressList string, path string, timeout string, manager string) {
+	cmd := exec.Command(path, "tx", "dkg", "start-keygen", id, threshold, timeout, addressList, "--from", manager, "--keyring-backend", "test", "-y")
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -78,7 +78,8 @@ func main() {
 	_=shareTestIds
 	thresholdString := os.Getenv("THRESHOLD")
 	capacity := os.Getenv("ChannelCap")
-
+	timeout := os.Getenv("Timeout")
+	manager := os.Getenv("Manager")
 	path := os.Getenv("PathTodkgd")
 	corePath := os.Getenv("PathToCore")
 	// if len(addresses) != len(keys) {
@@ -121,7 +122,7 @@ func main() {
 	// Generate a random integer between 0 and 100
 	randomNumber := rand.Intn(300)
 
-	startChainProgram(strconv.Itoa(randomNumber), thresholdString, jsonAddressString, path)
+	startChainProgram(strconv.Itoa(randomNumber), thresholdString, jsonAddressString, path, timeout, manager)
 	wg.Wait()
 	//Keep the programs running until interrupted
 	for i := 0; i < len(addresses); i++ {
