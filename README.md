@@ -8,13 +8,13 @@ The following four repositories provide the complete DKG protocol and its chain:
 To run the protocol, the chain and the tofnd instance need to be up and arunning. Each validator runs their own local version of the tofnd. 
 To test the DKG, four repositories are needed and they all need to be located in the same directory and tofn should be placed inside the tofnd directory. 
 
-## Usage
+## Testing
 First, the chain needs to be started. To start the chain, follow the below commands:
 ```sh
 cd dkg-chain
 ignite chain serve
 ```
-Next, the tofnd server should be started. The protocol can be tested either by running a single server for all validators or by simulating the actual case where each validator runs their own local version of the tofnd server using docker. 
+Next, the tofnd server should be started. The protocol can be tested either by running a single server for all validators or by simulating the actual case where each validator runs their own local version of the tofnd server. 
 ### Signle Server Testing
 To test the protocol on a signle server, follow the below commands to start the grpc server:
 ```sh
@@ -98,6 +98,27 @@ In both cases the faulty validator should be excluded from the protocol and the 
 ```
 In this example, anyone running this server will send wrong shares to validator 1.
 Other possible options for malicious behaviour are: `R2BadEncryption` and `R3FalseAccusation`
+
+## DKG Protocol Usage Guide
+
+To effectively utilize the DKG protocol, follow the outlined steps below:
+
+### 1. Set Up Validator Node
+First, establish a validator node in the DKG chain. You can do this by following the [node-setup guide](https://github.com/Fairblock/fairyring/blob/main/docs/validator/01_node_setup.md). Make sure to substitute any 'fairyring' specifics with the appropriate DKG chain details.
+
+### 2. Run Local tofnd Server
+Once your validator node is up and running, start your own `tofnd` server locally on your machine.
+
+### 3. Initialize DKG Process
+- Utilize the `single-server-testing.go` file to begin listening on the DKG chain for the `keygen-start` transaction and continue the protocol through running the `dkg-core`.
+
+### 4. Retrieve Final Share and MPK
+- Upon successful completion, the DKG share will be saved in a file named `share-{id}.txt`.
+- The Master Public Key (MPK) can be accessed from the chain by querying the `dkg-mpk` event.
+
+This guide should facilitate a smooth setup and operation of the DKG protocol.
+
+
 ## Benchmarking
 We have tested the protocol with `5` validators. The number of messages that are being broadcasted in each round are (n is the general number of validators):
 - Round 1: 5 broadcast messages (n)
