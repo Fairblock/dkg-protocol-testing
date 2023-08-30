@@ -22,7 +22,7 @@ import (
 )
 
 func startChainProgram(id string, threshold string, addressList string, path string) {
-	cmd := exec.Command(path, "tx", "dkg", "start-keygen", id, threshold, "13", addressList, "--from", "v1-key", "--keyring-backend", "test", "-y")
+	cmd := exec.Command(path, "tx", "dkg", "start-keygen", id, threshold, "150", addressList, "--from", "v1-key", "--keyring-backend", "test", "-y")
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
