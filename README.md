@@ -136,7 +136,7 @@ We have tested the protocol with `5` validators. The number of messages that are
 The dkg implementation is divided into 4 separate projects. Below, we briefly provide a high level description of each part. 
 
 ### dkg-chain
-The chain side serves as a conduit for broadcasting messages among validators. There are four distinct types of messages. The "start-keygen" message initiates the Distributed Key Generation (DKG) process and includes essential data such as a list of public keys (pks) of the validators participating in the DKG, the round timeout, the session ID, and the threshold value.
+The chain side serves as a conduit for broadcasting messages among validators. There are four distinct types of messages. The initiation of the Distributed Key Generation (DKG) process is triggered by the "start-keygen" message, which also sets a predetermined timeout value. Prior to the onset of each DKG round, validators have the option to either enroll in or withdraw from the forthcoming round by submitting a corresponding transaction. Additionally, a predefined number of blocks serves as a cooling-off period between consecutive DKG rounds, providing a window for validators to participate in the upcoming cycle. The duration of each DKG round is contingent upon the established timeout value, and these rounds are executed in a recurrent manner.
 
 Messages within the first two rounds are designated as "refundable messages." During the processing of these messages, an event is emitted, allowing validators to retrieve them. Additionally, these messages are assigned an index during processing. This index serves a critical function; if a validator misses a message, the index enables them to query and retrieve that specific missed message at a later time. A comprehensive list of public keys (pks) is maintained, which will subsequently be utilized in the computation of the Master Public Key (MPK).
 
@@ -169,6 +169,8 @@ Serving as the validator code, this section establishes connections to both the 
 - **Round-Based Messaging**: Messages for each round are only transmitted on-chain during the designated time window for that round, and the corresponding events are read from the chain within the same timeframe. If any messages are missing for a specific round, they will be queried and retrieved from the chain at the beginning of the subsequent round.
 - **Batched Transactions**: Messages are sent on-chain in batches, meaning that each transaction dispatched on-chain encompasses a batch of messages.
 - **Controlled Delay**: Transactions are sent with a specific delay based on the index of the validator. This strategy ensures that not all messages reach the mempool simultaneously, thereby preventing potential flooding that could lead to missed messages.
+
+For testing scenarios, the validator code is designed to transmit participation transactions both upon establishing a connection to the blockchain and at the conclusion of each Distributed Key Generation (DKG) round. In a production environment, this functionality can be modularized to allow for greater flexibility, enabling validators to dynamically join or withdraw from DKG rounds as needed.
 
 ## Runtime Measurements
 The following section delineates the runtime associated with the worst-case scenario, taking into consideration the varying quantities of participating validators.
